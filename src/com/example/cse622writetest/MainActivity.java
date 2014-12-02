@@ -25,7 +25,7 @@ public class MainActivity extends Activity {
 	private static final String fileName = "myfile";
 	private static final String key = "key";
 	private static final String value = "value";
-	int bytesPerMb = 1024;
+	int bytesPerMb = 1000000;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
