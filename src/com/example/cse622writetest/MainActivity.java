@@ -1,9 +1,9 @@
 package com.example.cse622writetest;
 
-import java.io.BufferedReader;
+import java.io.DataInputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.InputStreamReader;
+import java.util.Random;
 
 import android.app.Activity;
 import android.content.ContentValues;
@@ -13,16 +13,19 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.TextView;
 
 public class MainActivity extends Activity {
 	
 	private TextView tv;
+	private EditText et;
 	private static final String fileName = "myfile";
-	private static final String fileContent = "Hello world!";
 	private static final String key = "key";
 	private static final String value = "value";
+	int bytesPerMb = 1024;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -30,19 +33,39 @@ public class MainActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 		tv = (TextView) findViewById(R.id.textView1);
+		et = (EditText) findViewById(R.id.editText1);
 		tv.setText("Backup Text App");
+		et.setText("Size in Mb");
 		
+	}
+	
+	public void clearText(View v) {
+		et.setText("");
 	}
 	
 	public void filesWriteTest(View v) {
 		
 		FileOutputStream outputStream;
+		tv.setText("");
+		int size = Integer.parseInt(et.getText().toString());
 		
 		try {
+				
+			byte[] b = new byte[size * bytesPerMb];
+			Random random = new Random();
+			random.nextBytes(b);
+			
+			long tick = System.currentTimeMillis();
+			
 		    outputStream = openFileOutput(fileName, Context.MODE_PRIVATE);
-		    outputStream.write(fileContent.getBytes());
+		    outputStream.write(b);
 		    outputStream.close();
-		    tv.setText("Wrote: '" + fileContent + "' to file: '" + fileName + "'");
+		    
+		    long tock = System.currentTimeMillis();
+		    
+		    tv.append("Wrote: " + size + " Mb in " + (tock-tick) + " ms. ");
+		    Log.i("benchmark", "FILE WRITE: " + size + " Mb took " + (tock-tick) + " ms");
+			
 		} catch (Exception e) {
 			tv.setText("Unable to write file: " + e.getMessage());
 		}
@@ -52,14 +75,25 @@ public class MainActivity extends Activity {
 	public void filesReadTest(View v) {
 		
 		FileInputStream inputStream;
+		tv.setText("");
+		int size = Integer.parseInt(et.getText().toString());
 		
 		try {
+				
+			byte[] fileData = new byte[size * bytesPerMb];
+			
+			long tick = System.currentTimeMillis();
+		
 		    inputStream = openFileInput(fileName);
-		    InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
-		    BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-		    String line = bufferedReader.readLine();
+		    DataInputStream dis = new DataInputStream(inputStream);
+		    dis.readFully(fileData);
 		    inputStream.close();
-		    tv.setText("Read: '" + line + "' from file: '" + fileName + "'");
+		    
+		    long tock = System.currentTimeMillis();
+		    
+	    	tv.append("Read: " + size + " Mb in " + (tock-tick) + " ms. ");
+		    Log.i("benchmark", "FILE READ: " + size + " Mb took " + (tock-tick) + " ms");
+		    
 		} catch (Exception e) {
 			tv.setText("Unable to read file: " + e.getMessage());
 		}
